@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Programación I | Parcial 2 | AMAYA, Rafael</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="estilos.css">
+
+    <script src="parcial.js" defer></script>
+</head>
+
+<body>
+    <!-- Contenedor de modales: el detalle del producto y del carrito se crean desde parcial.js -->
+    <div id="modal"></div>
+
+    <div class="web">
+        <header>
+            <h1>Programación I | Parcial 2 | AMAYA, Rafael</h1>
+        </header>
+
+        <main>
+            <aside id="mini-carrito">
+                <p><span id="mc-cantidad">0</span> ítems agregados</p>
+                <p>$<span id="mc-total">0</span> es el total</p>
+                <button id="btn-ver-carrito">Ver carrito</button>
+            </aside>
+
+            <!-- Generar el contenido del ul#productos dinámicamente -->
+            <ul id="productos">
+            </ul>
+        </main>
+
+        <footer>
+            <ul>
+                <li>Profesor Corbalan Cristian Ariel</li>
+                <li>
+                    <a href="mailto:cristian.corbalan@davinci.edu.ar"
+                        target="_blank">cristian.corbalan@davinci.edu.ar</a>
+                </li>
+                <li>Programación 1</li>
+            </ul>
+        </footer>
+    </div>
+</body>
+
+</html>
