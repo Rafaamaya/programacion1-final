@@ -90,8 +90,10 @@ class ShoppingCart {
             this.items.push({ product, quantity: 1 });
         }
     }
+    // Filtra por id (valor primitivo) y no por referencia del objeto,
+    // para que la comparación sea confiable sin importar de dónde venga el producto.
     removeProduct(product) {
-        this.items = this.items.filter(item => item.product !== product);
+        this.items = this.items.filter(item => item.product.id !== product.id);
     }
     getTotal() {
         return this.items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
