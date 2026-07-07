@@ -87,7 +87,7 @@ class ShoppingCart {
         if (item) {
             item.quantity++;
         } else {
-            this.items.push({ product: product, quantity: 1 });
+            this.items.push({ product, quantity: 1 });
         }
     }
     removeProduct(product) {
