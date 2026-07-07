@@ -5,13 +5,17 @@
  */
 
 // ===================== DATOS =====================
+// Ruta base donde se alojan las imágenes de los productos.
+// Si algún día cambian de carpeta, solo hay que modificar esta constante.
+const RUTA_IMAGENES = 'img/productos/';
+
 const productos = [
     {
         id: 1,
         nombre: 'Raphael',
         descripcion: 'Figura impresa en 3D y pintada a mano. Edición limitada coleccionista de 18 cm de alto.',
         precio: 574977,
-        imagen: 'img/productos/tortuga-ninja.jpg',
+        imagen: 'tortuga-ninja.jpg',
         categoria: 'Cine y TV'
     },
     {
@@ -19,7 +23,7 @@ const productos = [
         nombre: 'RoboCop',
         descripcion: 'Figura impresa en 3D y pintada a mano. Réplica detallada del policía cibernético de Detroit, 20 cm de alto.',
         precio: 735977,
-        imagen: 'img/productos/robocop.jpg',
+        imagen: 'robocop.jpg',
         categoria: 'Cine y TV'
     },
     {
@@ -27,7 +31,7 @@ const productos = [
         nombre: 'Depredador',
         descripcion: 'Figura impresa en 3D y pintada a mano. El cazador alienígena con armadura y armas, 22 cm de alto.',
         precio: 850977,
-        imagen: 'img/productos/depredador.jpg',
+        imagen: 'depredador.jpg',
         categoria: 'Cine y TV'
     },
     {
@@ -35,7 +39,7 @@ const productos = [
         nombre: 'Mazinger Z',
         descripcion: 'Figura impresa en 3D y pintada a mano. El clásico robot rojo y negro del anime, 21 cm de alto.',
         precio: 804977,
-        imagen: 'img/productos/mazinger.jpg',
+        imagen: 'mazinger.jpg',
         categoria: 'Anime'
     },
     {
@@ -43,7 +47,7 @@ const productos = [
         nombre: 'Maestro Roshi',
         descripcion: 'Figura impresa en 3D y pintada a mano. El sabio maestro de artes marciales con su bastón, 17 cm de alto.',
         precio: 459977,
-        imagen: 'img/productos/maestro-artes-marciales.jpg',
+        imagen: 'maestro-artes-marciales.jpg',
         categoria: 'Anime'
     },
     {
@@ -51,7 +55,7 @@ const productos = [
         nombre: 'He-Man',
         descripcion: 'Figura impresa en 3D y pintada a mano. El héroe de Eternia con su espada de poder, 20 cm de alto.',
         precio: 367977,
-        imagen: 'img/productos/he-man.jpg',
+        imagen: 'he-man.jpg',
         categoria: 'Fantasía'
     },
     {
@@ -59,7 +63,7 @@ const productos = [
         nombre: 'Espadachín Sombrío',
         descripcion: 'Figura impresa en 3D y pintada a mano. Guerrero de abrigo negro y katana, 19 cm de alto.',
         precio: 528977,
-        imagen: 'img/productos/espadachin-azul.jpg',
+        imagen: 'espadachin-azul.jpg',
         categoria: 'Fantasía'
     },
     {
@@ -67,7 +71,7 @@ const productos = [
         nombre: 'Orco',
         descripcion: 'Figura impresa en 3D y pintada a mano. Pequeño hechicero de sombrero rojo y báculo mágico, 15 cm de alto.',
         precio: 413977,
-        imagen: 'img/productos/mago.jpg',
+        imagen: 'mago.jpg',
         categoria: 'Fantasía'
     }
 ];
@@ -129,7 +133,7 @@ function crearCard(producto) {
     const $li = crearElemento('li');
 
     const $img = crearElemento('img');
-    $img.src = producto.imagen;
+    $img.src = RUTA_IMAGENES + producto.imagen;
     $img.alt = producto.nombre;
 
     const $div = crearElemento('div');
@@ -184,7 +188,7 @@ function mostrarDetalle(producto) {
     const $div = crearElemento('div', 'detalle');
 
     const $img = crearElemento('img');
-    $img.src = producto.imagen;
+    $img.src = RUTA_IMAGENES + producto.imagen;
     $img.alt = producto.nombre;
 
     const $h2 = crearElemento('h2', null, producto.nombre);
