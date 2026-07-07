@@ -179,9 +179,7 @@ function renderCatalog(productsToRender) {
     const $productList = document.getElementById('productos');
 
     // limpio la lista antes de dibujar, así se puede volver a llamar sin duplicar
-    while ($productList.firstChild) {
-        $productList.firstChild.remove();
-    }
+    $productList.textContent = '';
 
     productsToRender.forEach(function (product) {
         $productList.append(createCard(product));
@@ -243,10 +241,8 @@ function showDetail(product) {
 // Recibe los nodos por parámetro para poder vivir fuera de showCart y reutilizarse:
 // se llama al abrir la modal y también al eliminar/vaciar, así la modal se actualiza sin cerrarse.
 function renderCartItems($ulItems, $spanCount, $spanTotal) {
-    // vacío la lista sin usar innerHTML (saco los <li> uno por uno)
-    while ($ulItems.firstChild) {
-        $ulItems.firstChild.remove();
-    }
+    // vacío la lista de una sola vez, sin usar innerHTML
+    $ulItems.textContent = '';
 
     $spanCount.textContent = 'Productos: ' + cart.countItems();
     $spanTotal.textContent = 'Total: $' + cart.getTotal().toLocaleString('es-AR');
