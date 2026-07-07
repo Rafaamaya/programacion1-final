@@ -164,10 +164,18 @@ function createCard(product) {
     return $li;
 }
 
-// Dibuja todo el catálogo dentro del <ul id="productos">.
-function renderCatalog() {
+// Dibuja el catálogo dentro del <ul id="productos"> a partir del listado recibido.
+// Recibe los productos por parámetro para poder reutilizarla con cualquier
+// subconjunto (filtros, destacados, resultados de búsqueda, etc.).
+function renderCatalog(productsToRender) {
     const $productList = document.getElementById('productos');
-    products.forEach(function (product) {
+
+    // limpio la lista antes de dibujar, así se puede volver a llamar sin duplicar
+    while ($productList.firstChild) {
+        $productList.firstChild.remove();
+    }
+
+    productsToRender.forEach(function (product) {
         $productList.append(createCard(product));
     });
 }
@@ -300,7 +308,7 @@ function showCart() {
 }
 
 // ===================== INICIO (se ejecuta al cargar) =====================
-renderCatalog();
+renderCatalog(products);
 updateMiniCart();
 
 // Conecto el botón "Ver carrito" para abrir la modal del carrito
