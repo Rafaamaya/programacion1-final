@@ -108,14 +108,21 @@ class ShoppingCart {
 const cart = new ShoppingCart();
 
 // ===================== HELPERS =====================
-// Crea un elemento con una clase y un texto opcionales, y devuelve el nodo listo.
-function createElement(tag, cssClass, text) {
+// Crea un elemento con una clase, un texto y un objeto de atributos opcionales,
+// y devuelve el nodo listo. Ej: createElement('img', null, undefined, { src: 'foto.jpg', alt: 'Foto' })
+function createElement(tag, cssClass, text, attributes) {
     const $el = document.createElement(tag);
     if (cssClass) {
         $el.classList.add(cssClass);
     }
     if (text !== undefined) {
         $el.textContent = text;
+    }
+    // recorro el objeto de atributos y aplico cada par nombre/valor
+    if (attributes) {
+        for (const name in attributes) {
+            $el.setAttribute(name, attributes[name]);
+        }
     }
     return $el;
 }
@@ -132,9 +139,10 @@ function createButton(text, onClick) {
 function createCard(product) {
     const $li = createElement('li');
 
-    const $img = createElement('img');
-    $img.src = IMAGES_PATH + product.image;
-    $img.alt = product.name;
+    const $img = createElement('img', null, undefined, {
+        src: IMAGES_PATH + product.image,
+        alt: product.name
+    });
 
     const $div = createElement('div');
     const $h2 = createElement('h2', null, product.name);
@@ -195,9 +203,10 @@ function showDetail(product) {
     const $dialog = createElement('dialog', 'modal');
     const $div = createElement('div', 'detalle');
 
-    const $img = createElement('img');
-    $img.src = IMAGES_PATH + product.image;
-    $img.alt = product.name;
+    const $img = createElement('img', null, undefined, {
+        src: IMAGES_PATH + product.image,
+        alt: product.name
+    });
 
     const $h2 = createElement('h2', null, product.name);
     const $description = createElement('p', 'descripcion', product.description);
