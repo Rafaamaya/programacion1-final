@@ -239,6 +239,44 @@ function showDetail(product) {
     $dialog.showModal();
 }
 
+// Dibuja (y redibuja) la lista de items del carrito y su header, dentro de los nodos recibidos.
+// Recibe los nodos por parámetro para poder vivir fuera de showCart y reutilizarse:
+// se llama al abrir la modal y también al eliminar/vaciar, así la modal se actualiza sin cerrarse.
+function renderCartItems($ulItems, $spanCount, $spanTotal) {
+    // vacío la lista sin usar innerHTML (saco los <li> uno por uno)
+    while ($ulItems.firstChild) {
+        $ulItems.firstChild.remove();
+    }
+
+    $spanCount.textContent = 'Productos: ' + cart.countItems();
+    $spanTotal.textContent = 'Total: $' + cart.getTotal().toLocaleString('es-AR');
+
+    // si está vacío, muestro un mensaje y corto
+    if (cart.items.length === 0) {
+        $ulItems.append(createElement('li', null, 'El carrito está vacío.'));
+        return;
+    }
+
+    // un <li> por producto (cada uno una vez), con cantidad y subtotal
+    cart.items.forEach(function (item) {
+        const subtotal = item.product.price * item.quantity;
+        const text = item.product.name + ' - ' + item.quantity +
+            ' x $' + item.product.price.toLocaleString('es-AR') +
+            ' = $' + subtotal.toLocaleString('es-AR') + ' ';
+
+        const $li = createElement('li', null, text);
+
+        const $btnRemove = createButton('Eliminar', function () {
+            cart.removeProduct(item.product);
+            renderCartItems($ulItems, $spanCount, $spanTotal); // redibujo la lista (la modal sigue abierta)
+            updateMiniCart();                                  // y refresco el mini-carrito de la página
+        });
+
+        $li.append($btnRemove);
+        $ulItems.append($li);
+    });
+}
+
 // Crea y abre la modal con el detalle del carrito.
 function showCart() {
     const $modal = document.getElementById('modal');
@@ -265,54 +303,17 @@ function showCart() {
     });
     const $btnEmpty = createButton('Vaciar', function () {
         cart.empty();
-        renderItems();
+        renderCartItems($ulItems, $spanCount, $spanTotal);
         updateMiniCart();
     });
     const $footer = createElement('footer');
     $footer.append($btnClose, $btnEmpty);
 
-    // Dibuja (y redibuja) la lista + el header. Se llama al abrir y al eliminar/vaciar,
-    // así la modal se actualiza sin cerrarse.
-    function renderItems() {
-        // vacío la lista sin usar innerHTML (saco los <li> uno por uno)
-        while ($ulItems.firstChild) {
-            $ulItems.firstChild.remove();
-        }
-
-        $spanCount.textContent = 'Productos: ' + cart.countItems();
-        $spanTotal.textContent = 'Total: $' + cart.getTotal().toLocaleString('es-AR');
-
-        // si está vacío, muestro un mensaje y corto
-        if (cart.items.length === 0) {
-            $ulItems.append(createElement('li', null, 'El carrito está vacío.'));
-            return;
-        }
-
-        // un <li> por producto (cada uno una vez), con cantidad y subtotal
-        cart.items.forEach(function (item) {
-            const subtotal = item.product.price * item.quantity;
-            const text = item.product.name + ' - ' + item.quantity +
-                ' x $' + item.product.price.toLocaleString('es-AR') +
-                ' = $' + subtotal.toLocaleString('es-AR') + ' ';
-
-            const $li = createElement('li', null, text);
-
-            const $btnRemove = createButton('Eliminar', function () {
-                cart.removeProduct(item.product);
-                renderItems();    // redibujo la lista (la modal sigue abierta)
-                updateMiniCart(); // y refresco el mini-carrito de la página
-            });
-
-            $li.append($btnRemove);
-            $ulItems.append($li);
-        });
-    }
-
     // armo el árbol, dibujo el contenido inicial y abro
     $div.append($header, $ulItems, $footer);
     $dialog.append($div);
     $modal.append($dialog);
-    renderItems();
+    renderCartItems($ulItems, $spanCount, $spanTotal);
     $dialog.showModal();
 }
 
