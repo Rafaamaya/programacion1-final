@@ -93,6 +93,32 @@ button {
   &:active { transform: translateY(0); }
 }
 
+/* ===== Navegación de categorías ===== */
+#categorias {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-bottom: 1.5rem;
+
+  button {
+    background: transparent;
+    color: var(--brand);
+    border: 1.5px solid var(--brand);
+
+    &:hover {
+      background: #efe7fb;
+      box-shadow: none;
+    }
+
+    &.activa {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #ffffff;
+      border-color: transparent;
+    }
+  }
+}
+
 /* ===== Mini carrito (barra fija) ===== */
 #mini-carrito {
   display: flex;

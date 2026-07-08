@@ -188,6 +188,17 @@ function renderCatalog(productsToRender) {
     });
 }
 
+// ===================== FILTRO POR CATEGORÍAS =====================
+// Redibuja el catálogo con los productos de la categoría recibida.
+function filterByCategory(category) {
+    let filtered = products;
+    let categoryFirstButton = document.querySelector('#categorias button').textContent;
+    if (category !== categoryFirstButton) {
+        filtered = products.filter(p => p.category === category);
+    }
+    renderCatalog(filtered);
+}
+
 // ===================== MINI-CARRITO =====================
 // Refresca la cantidad y el total del mini-carrito fijo de la página.
 function updateMiniCart() {
@@ -322,4 +333,19 @@ updateMiniCart();
 // Conecto el botón "Ver carrito" para abrir la modal del carrito
 document.getElementById('btn-ver-carrito').addEventListener('click', function () {
     showCart();
+});
+
+// Conecto la barra de categorías: cada botón filtra el catálogo y queda marcado como activo
+const $categoryButtons = document.querySelectorAll('#categorias button');
+$categoryButtons.forEach(function ($button) {
+    $button.addEventListener('click', function () {
+        $button.classList.add('activa');
+        filterByCategory($button.textContent);
+        // desactivo los demás botones
+        $categoryButtons.forEach(function ($otherButton) {
+            if ($otherButton !== $button) {
+                $otherButton.classList.remove('activa');
+            }
+        });
+    });
 });
