@@ -77,6 +77,9 @@ const products = [
 ];
 
 // ===================== CLASES =====================
+// Clave con la que se guarda el carrito en el localStorage del navegador.
+const CART_STORAGE_KEY = 'carrito';
+
 class ShoppingCart {
     constructor() {
         this.items = [];
@@ -89,11 +92,13 @@ class ShoppingCart {
         } else {
             this.items.push({ product, quantity: 1 });
         }
+        this.save();
     }
     // Filtra por id (valor primitivo) y no por referencia del objeto,
     // para que la comparación sea confiable sin importar de dónde venga el producto.
     removeProduct(product) {
         this.items = this.items.filter(item => item.product.id !== product.id);
+        this.save();
     }
     getTotal() {
         return this.items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
@@ -103,6 +108,18 @@ class ShoppingCart {
     }
     empty() {
         this.items = [];
+        this.save();
+    }
+    // Guarda los items en localStorage. Solo acepta strings, por eso JSON.stringify.
+    save() {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(this.items));
+    }
+    // Recupera los items guardados la última vez (getItem devuelve null si no hay nada).
+    load() {
+        const saved = localStorage.getItem(CART_STORAGE_KEY);
+        if (saved) {
+            this.items = JSON.parse(saved);
+        }
     }
 }
 
@@ -558,6 +575,7 @@ function showCheckout() {
 }
 
 // ===================== INICIO (se ejecuta al cargar) =====================
+cart.load(); // recupero el carrito guardado, así sobrevive a recargas y cierres
 renderCatalog(products);
 updateMiniCart();
 
