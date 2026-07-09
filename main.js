@@ -6,8 +6,11 @@
 
 // ===================== DATOS =====================
 // Ruta base donde se alojan las imágenes de los productos.
-// Si algún día cambian de carpeta, solo hay que modificar esta constante.
 const IMAGES_PATH = 'images/products/';
+// Duración del banner en pantalla: 10 segundos exactos, como pide la consigna.
+const BANNER_DURATION = 10000;
+// Descuentos posibles para la oferta (se elige uno al azar).
+const BANNER_DISCOUNTS = [10, 15, 20, 25];
 
 const products = [
     {
@@ -197,6 +200,65 @@ function filterByCategory(category) {
         filtered = products.filter(p => p.category === category);
     }
     renderCatalog(filtered);
+
+    // cada vez que se filtra, aparece una oferta de ese listado
+    showOfferBanner(filtered);
+}
+
+// ===================== BANNER DE OFERTA =====================
+let $activeBanner = null;   // nodo del banner visible (null si no hay ninguno)
+let bannerTimeoutId = null; // id del setTimeout, para poder cancelarlo
+
+// Saca el banner de pantalla (lo REMUEVE del DOM) y cancela su temporizador.
+function removeBanner() {
+    if ($activeBanner) {
+        $activeBanner.remove();
+        $activeBanner = null;
+    }
+    clearTimeout(bannerTimeoutId);
+}
+
+// Crea y muestra un banner flotante con una oferta aleatoria del listado recibido.
+function showOfferBanner(offerPool) {
+    // si quedó un banner anterior (filtro tras filtro), lo saco antes de crear el nuevo
+    removeBanner();
+
+    // elijo un producto y un descuento al azar: por eso el banner "rota" en cada filtrado
+    const product = offerPool[Math.floor(Math.random() * offerPool.length)];
+    const discount = BANNER_DISCOUNTS[Math.floor(Math.random() * BANNER_DISCOUNTS.length)];
+    const offerPrice = Math.round(product.price * (1 - discount / 100));
+
+    const $banner = createElement('aside', 'banner-oferta');
+
+    const $img = createElement('img', null, undefined, {
+        src: IMAGES_PATH + product.image,
+        alt: product.name
+    });
+
+    const $info = createElement('div');
+    const $title = createElement('p', null, '🔥 ¡Oferta! ' + product.name + ' con ' + discount + '% OFF');
+    const $price = createElement('p', 'precio-oferta', '$' + offerPrice.toLocaleString('es-AR'));
+
+    // interacción de la oferta: abre el detalle del producto ofertado
+    const $btnView = createButton('Ver oferta', function () {
+        removeBanner();
+        showDetail(product);
+    });
+    $info.append($title, $price, $btnView);
+
+    // cierre manual antes de los 10 segundos
+    const $btnClose = createButton('✕', removeBanner);
+    $btnClose.classList.add('cerrar');
+
+    // barrita animada que muestra el tiempo restante (la animación CSS dura 10 s, igual que el setTimeout)
+    const $countdown = createElement('div', 'cuenta-regresiva');
+
+    $banner.append($img, $info, $btnClose, $countdown);
+    document.body.append($banner);
+    $activeBanner = $banner;
+
+    // pasados los 10 segundos, el banner desaparece solo
+    bannerTimeoutId = setTimeout(removeBanner, BANNER_DURATION);
 }
 
 // ===================== MINI-CARRITO =====================
@@ -326,7 +388,9 @@ function showCart() {
     $dialog.showModal();
 }
 
-// ===================== INICIO (se ejecuta al cargar) =====================
+// ======================================================================================================================
+//                                                INICIO (se ejecuta al cargar)
+// ======================================================================================================================
 renderCatalog(products);
 updateMiniCart();
 

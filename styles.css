@@ -101,6 +101,7 @@ button {
   gap: .6rem;
   margin-bottom: 1.5rem;
 
+  /* botones tipo pill: outline por defecto, relleno cuando están activos */
   button {
     background: transparent;
     color: var(--brand);
@@ -242,6 +243,84 @@ button {
       }
     }
   }
+}
+
+/* ===== Banner de oferta ===== */
+.banner-oferta {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  max-width: 22rem;
+  padding: 1rem 2.4rem 1.1rem 1rem;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  animation: fade-slide-up .3s ease-out;
+
+  img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #f0eef8;
+  }
+
+  p {
+    font-size: .9rem;
+    font-weight: 700;
+  }
+
+  .precio-oferta {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--brand-2);
+    margin-bottom: .35rem;
+  }
+
+  div > button {
+    padding: .35rem .9rem;
+    font-size: .8rem;
+  }
+
+  /* botón de cierre ✕ */
+  .cerrar {
+    position: absolute;
+    top: .35rem;
+    right: .35rem;
+    padding: .1rem .45rem;
+    font-size: .85rem;
+    background: transparent;
+    color: var(--muted);
+
+    &:hover {
+      background: #f3f1ec;
+      box-shadow: none;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /* barrita de tiempo restante: dura 10 s, igual que el setTimeout del JS */
+  .cuenta-regresiva {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--brand), var(--brand-2));
+    animation: agotar-tiempo 10s linear forwards;
+  }
+}
+
+@keyframes agotar-tiempo {
+  from { width: 100%; }
+  to { width: 0; }
 }
 
 /* ===== Modales ===== */
