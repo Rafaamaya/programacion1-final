@@ -6,11 +6,8 @@
 
 // ===================== DATOS =====================
 // Ruta base donde se alojan las imágenes de los productos.
+// Si algún día cambian de carpeta, solo hay que modificar esta constante.
 const IMAGES_PATH = 'images/products/';
-// Duración del banner en pantalla: 10 segundos exactos, como pide la consigna.
-const BANNER_DURATION = 10000;
-// Descuentos posibles para la oferta (se elige uno al azar).
-const BANNER_DISCOUNTS = [10, 15, 20, 25];
 
 const products = [
     {
@@ -206,6 +203,11 @@ function filterByCategory(category) {
 }
 
 // ===================== BANNER DE OFERTA =====================
+// Duración del banner en pantalla: 10 segundos exactos, como pide la consigna.
+const BANNER_DURATION = 10000;
+// Descuentos posibles para la oferta (se elige uno al azar).
+const BANNER_DISCOUNTS = [10, 15, 20, 25];
+
 let $activeBanner = null;   // nodo del banner visible (null si no hay ninguno)
 let bannerTimeoutId = null; // id del setTimeout, para poder cancelarlo
 
@@ -219,6 +221,7 @@ function removeBanner() {
 }
 
 // Crea y muestra un banner flotante con una oferta aleatoria del listado recibido.
+// A los 10 segundos desaparece solo; también se puede cerrar antes con la ✕.
 function showOfferBanner(offerPool) {
     // si quedó un banner anterior (filtro tras filtro), lo saco antes de crear el nuevo
     removeBanner();
@@ -377,8 +380,14 @@ function showCart() {
         renderCartItems($ulItems, $spanCount, $spanTotal);
         updateMiniCart();
     });
+    $btnEmpty.classList.add('vaciar');
+    // marca el final de la selección: cierra el carrito y pasa al ingreso de datos
+    const $btnCheckout = createButton('Finalizar compra', function () {
+        $dialog.close();
+        showCheckout();
+    });
     const $footer = createElement('footer');
-    $footer.append($btnClose, $btnEmpty);
+    $footer.append($btnClose, $btnEmpty, $btnCheckout);
 
     // armo el árbol, dibujo el contenido inicial y abro
     $div.append($header, $ulItems, $footer);
@@ -388,9 +397,167 @@ function showCart() {
     $dialog.showModal();
 }
 
-// ======================================================================================================================
-//                                                INICIO (se ejecuta al cargar)
-// ======================================================================================================================
+// ===================== CHECKOUT =====================
+// Campos de datos del cliente que pide la consigna.
+const CHECKOUT_FIELDS = [
+    { label: 'Nombre', name: 'nombre', type: 'text' },
+    { label: 'Teléfono', name: 'telefono', type: 'tel' },
+    { label: 'Email', name: 'email', type: 'email' },
+    { label: 'Lugar de entrega', name: 'lugar', type: 'text' },
+    { label: 'Fecha de entrega', name: 'fecha', type: 'date' }
+];
+const PAYMENT_METHODS = ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Efectivo'];
+const INSTALLMENT_OPTIONS = ['1', '3', '6', '12'];
+
+// Crea un campo del formulario: un <label> con su texto y el control adentro.
+function createField(labelText, $control) {
+    const $label = createElement('label', null, labelText + ' ');
+    $label.append($control);
+    return $label;
+}
+
+// Crea un <select> con una opción vacía inicial (obliga a elegir) más las recibidas.
+function createSelect(name, options) {
+    const $select = createElement('select', null, undefined, { name: name, required: '' });
+    const $placeholder = createElement('option', null, 'Elegir...');
+    $placeholder.setAttribute('value', '');
+    $select.append($placeholder);
+    options.forEach(function (text) {
+        const $option = createElement('option', null, text);
+        $option.setAttribute('value', text);
+        $select.append($option);
+    });
+    return $select;
+}
+
+// Validación con DOM: la consigna solo pide que los datos no estén vacíos.
+// Marca los campos que fallan con la clase 'invalido' y devuelve true/false.
+function validateForm($form) {
+    let valid = true;
+    $form.querySelectorAll('input, select').forEach(function ($control) {
+        if ($control.value.trim() === '') {
+            $control.classList.add('invalido');
+            valid = false;
+        } else {
+            $control.classList.remove('invalido');
+        }
+    });
+    return valid;
+}
+
+// Modal de agradecimiento al confirmar la compra (todo con DOM, sin alert).
+function showThanks(customerName) {
+    const $modal = document.getElementById('modal');
+
+    const $dialog = createElement('dialog', 'modal');
+    const $div = createElement('div', 'gracias');
+
+    const $h2 = createElement('h2', null, '¡Gracias por tu compra, ' + customerName + '! 🎉');
+    const $p = createElement('p', null, 'Te va a llegar un email con el detalle del pedido.');
+    const $btnClose = createButton('Cerrar', function () {
+        $dialog.close();
+    });
+    $dialog.addEventListener('close', function () {
+        $dialog.remove();
+    });
+
+    $div.append($h2, $p, $btnClose);
+    $dialog.append($div);
+    $modal.append($dialog);
+    $dialog.showModal();
+}
+
+// Crea y abre la modal del checkout: datos del cliente y del pago.
+function showCheckout() {
+    const $modal = document.getElementById('modal');
+
+    const $dialog = createElement('dialog', 'modal');
+    // novalidate: desactivo los globos nativos del navegador para validar yo con DOM
+    const $form = createElement('form', 'checkout', undefined, {
+        method: 'get',
+        action: '#',
+        novalidate: ''
+    });
+
+    const $h2 = createElement('h2', null, 'Finalizar compra');
+    const $summary = createElement('p', 'resumen',
+        cart.countItems() + ' productos · Total: $' + cart.getTotal().toLocaleString('es-AR'));
+    $form.append($h2, $summary);
+
+    // campos del cliente (uno por cada entrada de CHECKOUT_FIELDS)
+    CHECKOUT_FIELDS.forEach(function (field) {
+        const $input = createElement('input', null, undefined, {
+            name: field.name,
+            type: field.type,
+            required: ''
+        });
+        $form.append(createField(field.label, $input));
+    });
+
+    // método de pago
+    const $paymentSelect = createSelect('pago', PAYMENT_METHODS);
+    $form.append(createField('Método de pago', $paymentSelect));
+
+    // cuotas: solo corresponden con tarjeta de crédito, así que el campo
+    // se AGREGA o se QUITA del DOM según el método elegido (no se oculta)
+    const $installmentsField = createField('Cuotas', createSelect('cuotas', INSTALLMENT_OPTIONS));
+    $paymentSelect.addEventListener('change', function () {
+        if ($paymentSelect.value === 'Tarjeta de crédito') {
+            $paymentSelect.parentElement.after($installmentsField);
+        } else {
+            $installmentsField.remove();
+        }
+    });
+
+    // aviso general de validación (se agrega al DOM solo si hace falta)
+    const $error = createElement('p', 'error', 'Completá los campos marcados.');
+
+    // botones: Cancelar vuelve al carrito para seguir agregando/eliminando
+    const $btnCancel = createButton('Cancelar', function () {
+        $dialog.close();
+        showCart();
+    });
+    $btnCancel.setAttribute('type', 'button'); // que no dispare el submit del form
+    const $btnConfirm = createElement('button', null, 'Confirmar compra'); // type=submit por defecto
+
+    const $footer = createElement('footer');
+    $footer.append($btnCancel, $btnConfirm);
+    $form.append($footer);
+
+    // al enviar: valido con DOM; si está todo completo se confirma la compra
+    $form.addEventListener('submit', function (event) {
+        event.preventDefault(); // cancela el envío tradicional: todo pasa en este documento
+
+        if (!validateForm($form)) {
+            // muestro el aviso (una sola vez) arriba de los botones
+            if (!$error.parentElement) {
+                $footer.before($error);
+            }
+            return;
+        }
+
+        const customerName = $form.querySelector('input[name="nombre"]').value;
+        $dialog.close();
+        cart.empty();      // compra finalizada: se resetea el carrito
+        updateMiniCart();
+        showThanks(customerName);
+    });
+
+    // al corregir un campo, le saco la marca de inválido al instante
+    $form.addEventListener('input', function (event) {
+        event.target.classList.remove('invalido');
+    });
+
+    $dialog.addEventListener('close', function () {
+        $dialog.remove();
+    });
+
+    $dialog.append($form);
+    $modal.append($dialog);
+    $dialog.showModal();
+}
+
+// ===================== INICIO (se ejecuta al cargar) =====================
 renderCatalog(products);
 updateMiniCart();
 

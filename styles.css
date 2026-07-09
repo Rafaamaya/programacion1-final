@@ -450,13 +450,97 @@ button {
       }
 
       /* "Vaciar" (acción destructiva) */
-      button:last-child {
+      button.vaciar {
         background: var(--danger);
 
         &:hover { box-shadow: 0 6px 16px rgba(225, 29, 72, .35); }
       }
     }
   }
+  .checkout {
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+
+    h2 { color: var(--brand); }
+
+    .resumen {
+      padding-bottom: .6rem;
+      border-bottom: 2px solid var(--line);
+      font-weight: 700;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--texto, var(--muted));
+    }
+
+    input,
+    select {
+      padding: .55rem .7rem;
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      font: inherit;
+      color: var(--ink);
+      background: var(--surface);
+
+      &:focus {
+        outline: 2px solid var(--brand);
+        border-color: transparent;
+      }
+    }
+
+    /* campo que no pasó la validación */
+    .invalido {
+      border-color: var(--danger);
+      background: #fdf0f3;
+    }
+
+    /* aviso general de validación */
+    .error {
+      color: var(--danger);
+      font-weight: 700;
+      font-size: .9rem;
+      text-align: center;
+    }
+
+    footer {
+      display: flex;
+      gap: .75rem;
+      justify-content: center;
+      margin-top: .4rem;
+
+      button { flex: 1; max-width: 12rem; }
+
+      /* "Cancelar" */
+      button:first-child {
+        background: transparent;
+        color: var(--ink);
+        border: 1.5px solid var(--line);
+
+        &:hover {
+          background: #f3f1ec;
+          box-shadow: none;
+        }
+      }
+    }
+  }
+
+  .gracias {
+    text-align: center;
+
+    h2 {
+      color: var(--brand);
+      margin-bottom: .6rem;
+    }
+
+    p { margin-bottom: 1.2rem; }
+  }
+
 }
 
 .modal::backdrop {
