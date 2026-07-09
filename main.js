@@ -15,7 +15,7 @@ const products = [
         name: 'Raphael',
         description: 'Figura impresa en 3D y pintada a mano. Edición limitada coleccionista de 18 cm de alto.',
         price: 574977,
-        image: 'ninja-turtle.jpg',
+        images: ['ninja-turtle.jpg', 'ninja-turtle-2.jpg'],
         category: 'Cine y TV'
     },
     {
@@ -23,7 +23,7 @@ const products = [
         name: 'RoboCop',
         description: 'Figura impresa en 3D y pintada a mano. Réplica detallada del policía cibernético de Detroit, 20 cm de alto.',
         price: 735977,
-        image: 'robocop.jpg',
+        images: ['robocop.jpg', 'robocop-2.jpg'],
         category: 'Cine y TV'
     },
     {
@@ -31,7 +31,7 @@ const products = [
         name: 'Depredador',
         description: 'Figura impresa en 3D y pintada a mano. El cazador alienígena con armadura y armas, 22 cm de alto.',
         price: 850977,
-        image: 'predator.jpg',
+        images: ['predator.jpg', 'predator-2.jpg'],
         category: 'Cine y TV'
     },
     {
@@ -39,7 +39,7 @@ const products = [
         name: 'Mazinger Z',
         description: 'Figura impresa en 3D y pintada a mano. El clásico robot rojo y negro del anime, 21 cm de alto.',
         price: 804977,
-        image: 'mazinger.jpg',
+        images: ['mazinger.jpg', 'mazinger-2.jpg'],
         category: 'Anime'
     },
     {
@@ -47,7 +47,7 @@ const products = [
         name: 'Maestro Roshi',
         description: 'Figura impresa en 3D y pintada a mano. El sabio maestro de artes marciales con su bastón, 17 cm de alto.',
         price: 459977,
-        image: 'martial-arts-master.jpg',
+        images: ['martial-arts-master.jpg', 'martial-arts-master-2.jpg'],
         category: 'Anime'
     },
     {
@@ -55,7 +55,7 @@ const products = [
         name: 'He-Man',
         description: 'Figura impresa en 3D y pintada a mano. El héroe de Eternia con su espada de poder, 20 cm de alto.',
         price: 367977,
-        image: 'he-man.jpg',
+        images: ['he-man.jpg', 'he-man-2.jpg'],
         category: 'Fantasía'
     },
     {
@@ -63,7 +63,7 @@ const products = [
         name: 'Espadachín Sombrío',
         description: 'Figura impresa en 3D y pintada a mano. Guerrero de abrigo negro y katana, 19 cm de alto.',
         price: 528977,
-        image: 'blue-swordsman.jpg',
+        images: ['blue-swordsman.jpg', 'blue-swordsman-2.jpg'],
         category: 'Fantasía'
     },
     {
@@ -71,7 +71,7 @@ const products = [
         name: 'Orco',
         description: 'Figura impresa en 3D y pintada a mano. Pequeño hechicero de sombrero rojo y báculo mágico, 15 cm de alto.',
         price: 413977,
-        image: 'wizard.jpg',
+        images: ['wizard.jpg', 'wizard-2.jpg'],
         category: 'Fantasía'
     }
 ];
@@ -159,7 +159,7 @@ function createCard(product) {
     const $li = createElement('li');
 
     const $img = createElement('img', null, undefined, {
-        src: IMAGES_PATH + product.image,
+        src: IMAGES_PATH + product.images[0],
         alt: product.name
     });
 
@@ -251,7 +251,7 @@ function showOfferBanner(offerPool) {
     const $banner = createElement('aside', 'banner-oferta');
 
     const $img = createElement('img', null, undefined, {
-        src: IMAGES_PATH + product.image,
+        src: IMAGES_PATH + product.images[0],
         alt: product.name
     });
 
@@ -289,6 +289,17 @@ function updateMiniCart() {
 }
 
 // ===================== MODALES =====================
+// Cambia la foto visible de la galería del detalle: suma step (+1 o -1) al índice
+// guardado en el atributo data-indice de la imagen, dando la vuelta en los extremos.
+function changeGalleryImage($img, product, step) {
+    const total = product.images.length;
+    const current = Number($img.dataset.indice);
+    const next = (current + step + total) % total;
+    console.log('Galería: ' + current + "->"+step);
+    $img.dataset.indice = next;
+    $img.setAttribute('src', IMAGES_PATH + product.images[next]);
+}
+
 // Crea y abre la modal con el detalle de un producto.
 function showDetail(product) {
     const $modal = document.getElementById('modal');
@@ -296,9 +307,29 @@ function showDetail(product) {
     const $dialog = createElement('dialog', 'modal');
     const $div = createElement('div', 'detalle');
 
+    // galería de fotos: arranca en la primera; data-indice recuerda cuál se ve
     const $img = createElement('img', null, undefined, {
-        src: IMAGES_PATH + product.image,
-        alt: product.name
+        src: IMAGES_PATH + product.images[0],
+        alt: product.name,
+        'data-indice': '0'
+    });
+    const $btnPrev = createButton('‹', function () {
+        changeGalleryImage($img, product, -1);
+    });
+    const $btnNext = createButton('›', function () {
+        changeGalleryImage($img, product, 1);
+    });
+    const $gallery = createElement('div', 'galeria');
+    $gallery.append($btnPrev, $img, $btnNext);
+
+    // detección de teclado: las flechas ← → también recorren la galería
+    $dialog.addEventListener('keydown', function (event) {
+        if (event.key === 'ArrowLeft') {
+            changeGalleryImage($img, product, -1);
+        }
+        if (event.key === 'ArrowRight') {
+            changeGalleryImage($img, product, 1);
+        }
     });
 
     const $h2 = createElement('h2', null, product.name);
@@ -326,7 +357,7 @@ function showDetail(product) {
     $footer.append($btnClose, $btnAdd);
 
     // armo el árbol, lo inserto y abro como modal
-    $div.append($img, $h2, $description, $price, $category, $footer);
+    $div.append($gallery, $h2, $description, $price, $category, $footer);
     $dialog.append($div);
     $modal.append($dialog);
     $dialog.showModal();
