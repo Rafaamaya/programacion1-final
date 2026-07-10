@@ -1,14 +1,26 @@
 'use strict';
 
-/*
- * AMAYA, Rafael
- */
-
-// ===================== DATOS =====================
+// ===================== 1. CONFIGURACIÓN =====================
 // Ruta base donde se alojan las imágenes de los productos.
-// Si algún día cambian de carpeta, solo hay que modificar esta constante.
 const IMAGES_PATH = 'images/products/';
+// Clave con la que se guarda el carrito en el localStorage del navegador.
+const CART_STORAGE_KEY = 'carrito';
+// Duración del banner en pantalla: 10 segundos exactos, como pide la consigna.
+const BANNER_DURATION = 10000;
+// Descuentos posibles para la oferta (se elige uno al azar).
+const BANNER_DISCOUNTS = [10, 15, 20, 25];
+// Campos de datos del cliente
+const CHECKOUT_FIELDS = [
+    { label: 'Nombre', name: 'nombre', type: 'text' },
+    { label: 'Teléfono', name: 'telefono', type: 'tel' },
+    { label: 'Email', name: 'email', type: 'email' },
+    { label: 'Lugar de entrega', name: 'lugar', type: 'text' },
+    { label: 'Fecha de entrega', name: 'fecha', type: 'date' }
+];
+const PAYMENT_METHODS = ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Efectivo'];
+const INSTALLMENT_OPTIONS = ['1', '3', '6', '12'];
 
+// ===================== 2. DATOS =====================
 const products = [
     {
         id: 1,
@@ -76,10 +88,7 @@ const products = [
     }
 ];
 
-// ===================== CLASES =====================
-// Clave con la que se guarda el carrito en el localStorage del navegador.
-const CART_STORAGE_KEY = 'carrito';
-
+// ===================== 3. CLASES =====================
 class ShoppingCart {
     constructor() {
         this.items = [];
@@ -123,10 +132,12 @@ class ShoppingCart {
     }
 }
 
-// ===================== ESTADO =====================
+// ===================== 4. ESTADO =====================
 const cart = new ShoppingCart();
+let $activeBanner = null;   // nodo del banner visible (null si no hay ninguno)
+let bannerTimeoutId = null; // id del setTimeout, para poder cancelarlo
 
-// ===================== HELPERS =====================
+// ===================== 5. HELPERS DE DOM =====================
 // Crea un elemento con una clase, un texto y un objeto de atributos opcionales,
 // y devuelve el nodo listo. Ej: createElement('img', null, undefined, { src: 'foto.jpg', alt: 'Foto' })
 function createElement(tag, cssClass, text, attributes) {
@@ -153,7 +164,28 @@ function createButton(text, onClick) {
     return $button;
 }
 
-// ===================== CATÁLOGO =====================
+// Crea un campo del formulario: un <label> con su texto y el control adentro.
+function createField(labelText, $control) {
+    const $label = createElement('label', null, labelText + ' ');
+    $label.append($control);
+    return $label;
+}
+
+// Crea un <select> con una opción vacía inicial (obliga a elegir) más las recibidas.
+function createSelect(name, options) {
+    const $select = createElement('select', null, undefined, { name: name, required: '' });
+    const $placeholder = createElement('option', null, 'Elegir...');
+    $placeholder.setAttribute('value', '');
+    $select.append($placeholder);
+    options.forEach(function (text) {
+        const $option = createElement('option', null, text);
+        $option.setAttribute('value', text);
+        $select.append($option);
+    });
+    return $select;
+}
+
+// ===================== 6. CATÁLOGO Y FILTRO =====================
 // Crea y devuelve la card (<li>) de un producto.
 function createCard(product) {
     const $li = createElement('li');
@@ -205,7 +237,6 @@ function renderCatalog(productsToRender) {
     });
 }
 
-// ===================== FILTRO POR CATEGORÍAS =====================
 // Redibuja el catálogo con los productos de la categoría recibida.
 function filterByCategory(category) {
     let filtered = products;
@@ -219,15 +250,7 @@ function filterByCategory(category) {
     showOfferBanner(filtered);
 }
 
-// ===================== BANNER DE OFERTA =====================
-// Duración del banner en pantalla: 10 segundos exactos, como pide la consigna.
-const BANNER_DURATION = 10000;
-// Descuentos posibles para la oferta (se elige uno al azar).
-const BANNER_DISCOUNTS = [10, 15, 20, 25];
-
-let $activeBanner = null;   // nodo del banner visible (null si no hay ninguno)
-let bannerTimeoutId = null; // id del setTimeout, para poder cancelarlo
-
+// ===================== 7. BANNER DE OFERTA =====================
 // Saca el banner de pantalla (lo REMUEVE del DOM) y cancela su temporizador.
 function removeBanner() {
     if ($activeBanner) {
@@ -238,7 +261,6 @@ function removeBanner() {
 }
 
 // Crea y muestra un banner flotante con una oferta aleatoria del listado recibido.
-// A los 10 segundos desaparece solo; también se puede cerrar antes con la ✕.
 function showOfferBanner(offerPool) {
     // si quedó un banner anterior (filtro tras filtro), lo saco antes de crear el nuevo
     removeBanner();
@@ -281,21 +303,20 @@ function showOfferBanner(offerPool) {
     bannerTimeoutId = setTimeout(removeBanner, BANNER_DURATION);
 }
 
-// ===================== MINI-CARRITO =====================
+// ===================== 8. MINI-CARRITO =====================
 // Refresca la cantidad y el total del mini-carrito fijo de la página.
 function updateMiniCart() {
     document.getElementById('mc-cantidad').textContent = cart.countItems();
     document.getElementById('mc-total').textContent = cart.getTotal().toLocaleString('es-AR');
 }
 
-// ===================== MODALES =====================
+// ===================== 9. MODAL DETALLE =====================
 // Cambia la foto visible de la galería del detalle: suma step (+1 o -1) al índice
 // guardado en el atributo data-indice de la imagen, dando la vuelta en los extremos.
 function changeGalleryImage($img, product, step) {
     const total = product.images.length;
     const current = Number($img.dataset.indice);
     const next = (current + step + total) % total;
-    console.log('Galería: ' + current + "->"+step);
     $img.dataset.indice = next;
     $img.setAttribute('src', IMAGES_PATH + product.images[next]);
 }
@@ -363,6 +384,7 @@ function showDetail(product) {
     $dialog.showModal();
 }
 
+// ===================== 10. MODAL CARRITO =====================
 // Dibuja (y redibuja) la lista de items del carrito y su header, dentro de los nodos recibidos.
 // Recibe los nodos por parámetro para poder vivir fuera de showCart y reutilizarse:
 // se llama al abrir la modal y también al eliminar/vaciar, así la modal se actualiza sin cerrarse.
@@ -445,41 +467,8 @@ function showCart() {
     $dialog.showModal();
 }
 
-// ===================== CHECKOUT =====================
-// Campos de datos del cliente que pide la consigna.
-const CHECKOUT_FIELDS = [
-    { label: 'Nombre', name: 'nombre', type: 'text' },
-    { label: 'Teléfono', name: 'telefono', type: 'tel' },
-    { label: 'Email', name: 'email', type: 'email' },
-    { label: 'Lugar de entrega', name: 'lugar', type: 'text' },
-    { label: 'Fecha de entrega', name: 'fecha', type: 'date' }
-];
-const PAYMENT_METHODS = ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Efectivo'];
-const INSTALLMENT_OPTIONS = ['1', '3', '6', '12'];
-
-// Crea un campo del formulario: un <label> con su texto y el control adentro.
-function createField(labelText, $control) {
-    const $label = createElement('label', null, labelText + ' ');
-    $label.append($control);
-    return $label;
-}
-
-// Crea un <select> con una opción vacía inicial (obliga a elegir) más las recibidas.
-function createSelect(name, options) {
-    const $select = createElement('select', null, undefined, { name: name, required: '' });
-    const $placeholder = createElement('option', null, 'Elegir...');
-    $placeholder.setAttribute('value', '');
-    $select.append($placeholder);
-    options.forEach(function (text) {
-        const $option = createElement('option', null, text);
-        $option.setAttribute('value', text);
-        $select.append($option);
-    });
-    return $select;
-}
-
-// Validación con DOM: la consigna solo pide que los datos no estén vacíos.
-// Marca los campos que fallan con la clase 'invalido' y devuelve true/false.
+// ===================== 11. CHECKOUT =====================
+// Validación con DOM: Marca los campos que fallan con la clase 'invalido' y devuelve true/false.
 function validateForm($form) {
     let valid = true;
     $form.querySelectorAll('input, select').forEach(function ($control) {
@@ -493,7 +482,7 @@ function validateForm($form) {
     return valid;
 }
 
-// Modal de agradecimiento al confirmar la compra (todo con DOM, sin alert).
+// Modal de agradecimiento al confirmar la compra
 function showThanks(customerName) {
     const $modal = document.getElementById('modal');
 
@@ -547,7 +536,7 @@ function showCheckout() {
     $form.append(createField('Método de pago', $paymentSelect));
 
     // cuotas: solo corresponden con tarjeta de crédito, así que el campo
-    // se AGREGA o se QUITA del DOM según el método elegido (no se oculta)
+    // se AGREGA o se QUITA del DOM según el método elegido
     const $installmentsField = createField('Cuotas', createSelect('cuotas', INSTALLMENT_OPTIONS));
     $paymentSelect.addEventListener('change', function () {
         if ($paymentSelect.value === 'Tarjeta de crédito') {
@@ -605,7 +594,7 @@ function showCheckout() {
     $dialog.showModal();
 }
 
-// ===================== INICIO (se ejecuta al cargar) =====================
+// ===================== 12. INICIO (se ejecuta al cargar) =====================
 cart.load(); // recupero el carrito guardado, así sobrevive a recargas y cierres
 renderCatalog(products);
 updateMiniCart();
